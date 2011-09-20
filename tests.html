@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-git.css" type="text/css">
+  <script type="text/javascript" src="http://code.jquery.com/qunit/qunit-git.js"></script>
+  <script type="text/javascript" src="projviz.js"></script>
+</head>
+<body>
+  <h1 id="qunit-header">Projviz Tests</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+
+<script>
+  test("Tasks default to starting on the current date at midnight", function() {
+    var p = Projviz.init(function(config) {
+      config.task("Test task");
+    });
+    var now = new Date();
+    
+    equal(p.tasks.length, 1);
+    equal(p.tasks[0].starting.getFullYear(), now.getFullYear());
+    equal(p.tasks[0].starting.getMonth(), now.getMonth());
+    equal(p.tasks[0].starting.getDate(), now.getDate());
+    equal(p.tasks[0].starting.getHours(), 0);
+    equal(p.tasks[0].starting.getMinutes(), 0);
+    equal(p.tasks[0].starting.getSeconds(), 0);
+    equal(p.tasks[0].starting.getMilliseconds(), 0);
+  });
+  
+  test("Tasks start on the nearest working day after the given date", function() {
+    var p = Projviz.init(function(config) {
+      config.task("Test task 1 (Mon)").starting(2011, 9, 19);
+      config.task("Test task 2 (Wed)").starting(2011, 9, 21);
+      config.task("Test task 3 (Fri)").starting(2011, 9, 23);
+      config.task("Test task 4 (Sat -> Mon)").starting(2011, 9, 24);
+      config.task("Test task 5 (Sun -> Mon)").starting(2011, 9, 25);
+    });
+    
+    equal(p.tasks.length, 5);
+    equal(p.tasks[0].starting.getTime(), new Date(2011, 8, 19, 0, 0, 0, 0).getTime());
+    equal(p.tasks[1].starting.getTime(), new Date(2011, 8, 21, 0, 0, 0, 0).getTime());
+    equal(p.tasks[2].starting.getTime(), new Date(2011, 8, 23, 0, 0, 0, 0).getTime());
+    equal(p.tasks[3].starting.getTime(), new Date(2011, 8, 26, 0, 0, 0, 0).getTime());
+    equal(p.tasks[4].starting.getTime(), new Date(2011, 8, 26, 0, 0, 0, 0).getTime());
+  });
+  
+  test("Tasks default to starting after previous task ends", function() {
+    var p = Projviz.init(function(config) {
+      config.task("Test task 1 (19th - 29th)").starting(2011, 9, 19).duration(8);
+      config.task("Test task 2 (29th - 6th)").duration(5);
+      config.task("Test task 3 (6th - 18th)").duration(8);
+    });
+    
+    equal(p.tasks[0].starting.getTime(), new Date(2011, 8, 19, 0, 0, 0, 0).getTime());
+    equal(p.tasks[0].ending().getTime(), new Date(2011, 8, 29, 0, 0, 0, 0).getTime());
+    equal(p.tasks[1].starting.getTime(), new Date(2011, 8, 29, 0, 0, 0, 0).getTime());
+    equal(p.tasks[1].ending().getTime(), new Date(2011, 9, 6, 0, 0, 0, 0).getTime());
+    equal(p.tasks[2].starting.getTime(), new Date(2011, 9, 6, 0, 0, 0, 0).getTime());
+    equal(p.tasks[2].ending().getTime(), new Date(2011, 9, 18, 0, 0, 0, 0).getTime());
+  });
+  
+  test("Tasks end on the nearest working day after their given duration", function() {
+    var p = Projviz.init(function(config) {
+      config.task("Test task 1 (Mon 4d)").starting(2011, 9, 19).duration(4);
+      config.task("Test task 2 (Mon 5d)").starting(2011, 9, 19).duration(5);
+      config.task("Test task 3 (Mon 6d)").starting(2011, 9, 19).duration(6);
+      config.task("Test task 4 (Fri 1d)").starting(2011, 9, 23).duration(1);
+      config.task("Test task 5 (Fri 2d)").starting(2011, 9, 23).duration(2);
+    });
+    
+    equal(p.tasks.length, 5);
+    equal(p.tasks[0].ending().getTime(), new Date(2011, 8, 23, 0, 0, 0, 0).getTime());
+    equal(p.tasks[1].ending().getTime(), new Date(2011, 8, 24, 0, 0, 0, 0).getTime());
+    equal(p.tasks[2].ending().getTime(), new Date(2011, 8, 27, 0, 0, 0, 0).getTime());
+    equal(p.tasks[3].ending().getTime(), new Date(2011, 8, 24, 0, 0, 0, 0).getTime());
+    equal(p.tasks[4].ending().getTime(), new Date(2011, 8, 27, 0, 0, 0, 0).getTime());
+  });
+  
+  test("First and last dates are derived from task starting and ending dates", function() {
+    var p = Projviz.init(function(config) {
+      config.task("Test task 1 (Mon 4d)").starting(2011, 9, 19).duration(4);
+      config.task("Test task 2 (Mon 5d)").starting(2011, 9, 19).duration(5);
+      config.task("Test task 3 (Mon 6d)").starting(2011, 9, 19).duration(6);
+      config.task("Test task 4 (Fri 1d)").starting(2011, 9, 23).duration(1);
+      config.task("Test task 5 (Fri 2d)").starting(2011, 9, 23).duration(2);
+    });
+    
+    equal(p.firstDate.getTime(), new Date(2011, 8, 19, 0, 0, 0, 0).getTime());
+    equal(p.lastDate.getTime(), new Date(2011, 8, 27, 0, 0, 0, 0).getTime());
+  });
+  
+  test("Week count is derived from first and last dates", function() {
+    var p1 = Projviz.init(function(config) {
+      config.task("Test task 1 (Mon 4d)").starting(2011, 9, 19).duration(4);
+    });
+    equal(p1.weekCount, 1);
+    
+    var p2 = Projviz.init(function(config) {
+      config.task("Test task 2 (Mon 5d)").starting(2011, 9, 19).duration(5);
+    });
+    equal(p2.weekCount, 1);
+    
+    var p3 = Projviz.init(function(config) {
+      config.task("Test task 3 (Mon 6d)").starting(2011, 9, 19).duration(6);
+    });
+    equal(p3.weekCount, 2);
+    
+    var p4 = Projviz.init(function(config) {
+      config.task("Test task 4 (Mon 10d)").starting(2011, 9, 19).duration(10);
+    });
+    equal(p4.firstDate.getTime(), new Date(2011, 8, 19, 0, 0, 0, 0).getTime());
+    equal(p4.lastDate.getTime(), new Date(2011, 9, 1, 0, 0, 0, 0).getTime());
+    equal(p4.weekCount, 2);
+  });
+  
+  test("Tasks default to previous task's assignee", function() {
+    var p = Projviz.init(function(config) {
+      config.task("Test task 1").assignee("Fred Bloggs");
+      config.task("Test task 2");
+      config.task("Test task 3").assignee("John Doe");
+      config.task("Test task 4");
+    });
+    
+    equal(p.tasks[0].assignee, "Fred Bloggs");
+    equal(p.tasks[1].assignee, "Fred Bloggs");
+    equal(p.tasks[2].assignee, "John Doe");
+    equal(p.tasks[3].assignee, "John Doe");
+  });
+</script>
+</body>
+</html>
