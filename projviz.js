@@ -110,7 +110,7 @@ Projviz.init = function(initializer) {
   params.middlePadding = config.middlePadding || 50;// TODO make this automatic
   params.topPadding = config.topPadding || 20;
   params.diamondSize = config.diamondSize || 3;
-  params.showDayMarkers = config.showDayMarkers || false;
+  params.showDayMarkers = config.showDayMarkers || true;
   params.colors = config.colors || ["0-#090-#eee", "0-#00c-#eee", "0-#c00-#eee"]
   
   // determine first and last dates
@@ -129,7 +129,7 @@ Projviz.init = function(initializer) {
   // determine week count
   var d1 = Projviz.mondayBefore(params.firstDate);
   var d2 = Projviz.mondayAfter(params.lastDate);
-  params.weekCount = (d2.getTime() - d1.getTime()) / Projviz.WEEK_MILLIS;
+  params.weekCount = Math.floor((d2.getTime() - d1.getTime()) / Projviz.WEEK_MILLIS);
   
   return params;
 }
@@ -175,21 +175,23 @@ Projviz.render = function(p, paper) {
   var timelineW = Math.floor((p.width - timelineX - p.rightMargin) / (p.weekCount * 7)) * p.weekCount * 7;
   line(timelineX, timelineY, timelineX + timelineW, timelineY);
   
-  // draw timeline week markers
+  // draw markers
   var weekLength = timelineW / p.weekCount;
   var dayLength = weekLength / 7;
   var d = Projviz.mondayBefore(p.firstDate);
   for (var i = 0; i < p.weekCount + 1; i++) {
+    // draw week marker
     diamond(timelineX + (i * weekLength), timelineY, p.diamondSize);
-    
     var dateLabelText = [dd(d.getDate()), "/", dd(d.getMonth() + 1)].join("");
     var dateLabel = text(timelineX + (i * weekLength), timelineY - p.labelFontSize, dateLabelText, p.labelFontSize, "middle");
     d.setDate(d.getDate() + 7);
-    if (p.showDayMarkers) {
-      // TODO day markers are buggy
+    
+    // draw day markers
+    if (p.showDayMarkers && i < p.weekCount) {
       for (var j = 1; j < 7; j++) {
         var dayMarkerX = timelineX + (i * weekLength) + (j * dayLength);
-        line(dayMarkerX, timelineY - p.diamondSize, dayMarkerX, timelineY + p.diamondSize);
+        var dayMarker = line(dayMarkerX, timelineY - 1, dayMarkerX, timelineY - 3 * p.diamondSize / 4);
+        dayMarker.attr({"stroke": "#888"});
       }
     }
   }
