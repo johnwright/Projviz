@@ -53,7 +53,7 @@ Projviz.init = function(initializer) {
     // ending date calculation (skips non-working days)
     var ending = null;
     this.ending = function() {
-      if (ending == null) {
+      if (ending === null) {
         ending = new Date(this.starting.getTime());
         for (var i = 0; i < this.duration; i++) {
           ending = nextWorkingDay(ending);
@@ -95,7 +95,7 @@ Projviz.init = function(initializer) {
   
   var config = new Config();
   initializer(config);
-  if (config.tasks.length == 0) return;
+  if (config.tasks.length === 0) return;
   var params = {};
   params.title = config.title || "";
   params.tasks = config.tasks;
@@ -208,7 +208,7 @@ Projviz.render = function(p, paper) {
   }
   p.tasks.sort(function(a, b) {
     var cmp = assignees[a.assignee].order - assignees[b.assignee].order;
-    if (cmp == 0) {
+    if (cmp === 0) {
       cmp = a.starting.getTime() - b.starting.getTime();
     }
     return cmp;
