@@ -217,9 +217,10 @@ Projviz.render = function(p, paper) {
   // draw tasks
   var yPos = timelineY + 4 * p.labelFontSize;
   var allLabels = [];
+  var allDottedLines = [];
   for (var i = 0; i < p.tasks.length; i++) {
     var task = p.tasks[i];
-    var startDayIndex = (task.starting - Projviz.mondayBefore(p.firstDate)) / Projviz.DAY_MILLIS;
+    var startDayIndex = Math.floor((task.starting - Projviz.mondayBefore(p.firstDate)) / Projviz.DAY_MILLIS);
     var x = timelineX + (dayLength * startDayIndex);
     var w = dayLength * ((task.ending() - task.starting) / Projviz.DAY_MILLIS);
     
@@ -234,14 +235,30 @@ Projviz.render = function(p, paper) {
       
       yPos = labelBounds.y + labelBounds.height + (p.labelFontSize / 3);
     }
-
-    var dottedLine = line(x, timelineY, x, yPos);
-    dottedLine.attr({"stroke-dasharray": ". "});
+    
+    // combine dotted line extents
+    var dottedLineExtent = allDottedLines[x];
+    if (! dottedLineExtent) {
+      dottedLineExtent = yPos;
+      allDottedLines[x] = yPos;
+    }
+    if (dottedLineExtent < yPos) {
+      allDottedLines[x] = yPos;
+    }
     
     var taskRect = paper.rect(x, yPos, w, p.labelFontSize);
     taskRect.attr({"stroke": "white", "fill": assignees[task.assignee].color});
     
     yPos += p.labelFontSize / 2;
+  }
+  
+  // draw dotted lines
+  for (var dottedLineX in allDottedLines) {
+    if (allDottedLines.hasOwnProperty(dottedLineX)) {
+      var dottedLineExtent = allDottedLines[dottedLineX];
+      var dottedLine = line(dottedLineX, timelineY, dottedLineX, dottedLineExtent);
+      dottedLine.attr({"stroke-dasharray": ". "});
+    }
   }
   
   // bring labels to the front
