@@ -202,7 +202,7 @@ Projviz.render = function(p, paper) {
   for (var i = 0; i < p.tasks.length; i++) {
     var obj = assignees[p.tasks[i].assignee];
     if (! obj) {
-      assignees[p.tasks[i].assignee] = {order: assigneeCount, color: p.colors[assigneeCount % p.colors.length]};
+      assignees[p.tasks[i].assignee] = {order: assigneeCount, color: null};
       assigneeCount++;
     }
   }
@@ -213,6 +213,18 @@ Projviz.render = function(p, paper) {
     }
     return cmp;
   });
+  
+  // use assignee name ordering to ensure consistent colours
+  var assigneeNames = [];
+  for (var assignee in assignees) {
+    if (assignees.hasOwnProperty(assignee)) {
+      assigneeNames.push(assignee);
+    }
+  }
+  assigneeNames.sort();
+  for (var i = 0; i < assigneeNames.length; i++) {
+    assignees[assigneeNames[i]].color = p.colors[i % p.colors.length];
+  }
   
   // draw tasks
   var yPos = timelineY + 4 * p.labelFontSize;
