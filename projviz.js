@@ -261,7 +261,7 @@ Projviz.render = function(p, paper) {
     var taskRect = paper.rect(x, yPos, w, p.labelFontSize);
     taskRect.attr({"stroke": "white", "fill": assignees[task.assignee].color});
     
-    yPos += p.labelFontSize / 2;
+    yPos += p.labelFontSize * (1 + labelLineCount)
   }
   
   // draw dotted lines
