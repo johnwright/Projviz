@@ -1,3 +1,9 @@
 #!/bin/sh
 
+if [ -z `which phantomjs` ]
+then
+    echo "Projviz requires the phantomjs executable to be available on your PATH"
+    exit 1
+fi
+
 phantomjs phantomjs-driver.js $1 $2
