@@ -1,4 +1,4 @@
-var Projviz = function(initializer, paper) {
+Projviz = function(initializer, paper) {
   var params = Projviz.init(initializer);
   
   if (! paper) {
@@ -164,6 +164,9 @@ Projviz.render = function(p, paper) {
   function dd(n) {
     return n < 10 ? "0" + n : n;
   }
+  
+  // fill background
+  paper.rect(0, 0, p.width, p.height).attr({"stroke": "white", "fill": "white"});
   
   // draw title
   var title = text(p.leftMargin, p.topPadding, p.title, p.titleFontSize);
