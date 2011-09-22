@@ -10,6 +10,12 @@
     page.injectJs("raphael/raphael-min.js");
     page.injectJs("projviz.js");
     page.injectJs(phantom.args[0]);
+    page.clipRect = page.evaluate(function() {
+      var elem = document.body.firstChild;
+      var w = parseInt(elem.getAttribute("width"));
+      var h = parseInt(elem.getAttribute("height"));
+      return {top: 0, left: 0, width: w, height: h};
+    });
     page.render(phantom.args[1]);
     phantom.exit();
   }
