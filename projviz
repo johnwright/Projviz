@@ -1,0 +1,3 @@
+#!/bin/sh
+
+phantomjs phantomjs-driver.js $1 $2
